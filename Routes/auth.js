@@ -8,8 +8,6 @@ require("dotenv").config();
 const Encode = require("../utility/encoder");
 const Authenticate = require("../middleware/jwtauth");
 
-
-
 router.get("/login", async (req, res) => {
   console.log(req.query.password);
   const email = req.query.email;

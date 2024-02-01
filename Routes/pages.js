@@ -1,10 +1,10 @@
 const router = require("express").Router();
 const Pages = require("../Models/pages");
-const redis = require("redis");
-const client = redis.createClient();
-const listredis = require('../utility/redisstore');
-const connectredis = require('../utility/redisstore');
-connectredis();
+
+const listredis = require("../middleware/listredis");
+const detailsredis = require("../middleware/listredis");
+const client = require("../utility/redisstore");
+
 const { v4: uuidv4 } = require("uuid");
 uuidv4();
 
@@ -14,7 +14,7 @@ uuidv4();
 router.post("/", async (req, res) => {
   const { userId, name } = req.body;
   const projectKey = `project:${userId}`;
-  
+
   try {
     const PageData = new Pages({
       name: name,
@@ -45,7 +45,6 @@ router.patch("/", async (req, res) => {
       await client.set(projectKey, JSON.stringify(result));
       client.expire(projectKey, 10);
       res.status(200).send({ result });
-      
     } catch (error) {
       console.log(error);
       res.send(error);
@@ -69,43 +68,36 @@ router.delete("/", async (req, res) => {
 });
 
 //List - all pages
-router.get("/list",listredis ,async (req, res) => {
+router.get("/list", listredis, async (req, res) => {
   const userId = { userId: req.query.userId };
-  const projectKey = `project:${userId}`; 
+  const projectKey = `project:${userId}`;
 
-    try {
-      const response = await Pages.find(userId);
-      await client.set(projectKey, JSON.stringify(response));
-      client.expire(projectKey, 10);
-      console.log(response);
-      res.status(200).send({ response });
-    } catch (error) {
-      console.log(error);
-      res.send({ error });
-    }
-  
+  try {
+    const response = await Pages.find(userId);
+    await client.set(projectKey, JSON.stringify(response));
+    client.expire(projectKey, 10);
+    console.log(response);
+    res.status(200).send({ response });
+  } catch (error) {
+    console.log(error);
+    res.send({ error });
+  }
 });
 
-
 //details - page
-router.get("/details", async (req, res) => {
+router.get("/details", detailsredis, async (req, res) => {
   const uuid = req.query;
   const projectKey = `project:${uuid}`;
-  const redisData = JSON.parse(await client.get(projectKey));
-  if (redisData) {
-    console.log(redisData);
-    res.send(redisData);
-  } else {
-    try {
-      const response = await Pages.find(uuid);
-      await client.set(projectKey, JSON.stringify(response));
-      client.expire(projectKey, 10);
-      console.log(response);
-      res.status(200).send({ response });
-    } catch (error) {
-      console.log(error);
-      res.send(error);
-    }
+
+  try {
+    const response = await Pages.find(uuid);
+    await client.set(projectKey, JSON.stringify(response));
+    client.expire(projectKey, 10);
+    console.log(response);
+    res.status(200).send({ response });
+  } catch (error) {
+    console.log(error);
+    res.send(error);
   }
 });
 
