@@ -2,12 +2,9 @@ const router = require("express").Router();
 const Pages = require("../Models/pages");
 const redis = require("redis");
 const client = redis.createClient();
-client
-  .connect()
-  .then(() => {
-    console.log("connected-redis");
-  })
-  .catch((e) => console.error(e));
+const listredis = require('../utility/redisstore');
+const connectredis = require('../utility/redisstore');
+connectredis();
 const { v4: uuidv4 } = require("uuid");
 uuidv4();
 
@@ -17,7 +14,7 @@ uuidv4();
 router.post("/", async (req, res) => {
   const { userId, name } = req.body;
   const projectKey = `project:${userId}`;
-  const redisData = JSON.parse(await client.get(projectKey));
+  
   try {
     const PageData = new Pages({
       name: name,
@@ -34,18 +31,17 @@ router.post("/", async (req, res) => {
 });
 //update details
 router.patch("/", async (req, res) => {
-  const filter = { uuid: req.query.uuid };
+  const uuid = { uuid: req.query.uuid };
   const name = req.query.name;
-  const projectKey = `project:${filter}`;
-  const redisData = JSON.parse(await client.get(projectKey));
-  if (filter) {
+  const projectKey = `project:${uuid}`;
+  if (uuid) {
     try {
       const result = await Pages.findOneAndUpdate(
-        filter,
+        uuid,
         { name: name },
         { upsert: true, new: true }
       );
-      console.log(result);
+      // console.log(result);
       await client.set(projectKey, JSON.stringify(result));
       client.expire(projectKey, 10);
       res.status(200).send({ result });
@@ -71,15 +67,12 @@ router.delete("/", async (req, res) => {
     res.send(error);
   }
 });
+
 //List - all pages
-router.get("/list", async (req, res) => {
+router.get("/list",listredis ,async (req, res) => {
   const userId = { userId: req.query.userId };
-  const projectKey = `project:${userId}`;
-  const redisData = JSON.parse(await client.get(projectKey));
-  if (redisData) {
-    console.log(redisData);
-    res.send(redisData);
-  } else {
+  const projectKey = `project:${userId}`; 
+
     try {
       const response = await Pages.find(userId);
       await client.set(projectKey, JSON.stringify(response));
@@ -90,8 +83,10 @@ router.get("/list", async (req, res) => {
       console.log(error);
       res.send({ error });
     }
-  }
+  
 });
+
+
 //details - page
 router.get("/details", async (req, res) => {
   const uuid = req.query;

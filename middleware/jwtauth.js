@@ -8,7 +8,7 @@ const Authenticate = (req, res) => {
   try {
    
     const token = req.headers;
-  //  console.log("ghghghg", token[jwtsecretkey]);
+    console.log("ghghghg", "Bearer "+token[jwtsecretkey]);
     const verified = jwt.verify(token[jwtsecretkey], jwtsecretkey);
     if (verified) {
       return res.send({ message: "successfully verified " });
