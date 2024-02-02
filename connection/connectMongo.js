@@ -1,5 +1,5 @@
-const mongoose = require('mongoose');
-require('dotenv').config()
+const mongoose = require("mongoose");
+require("dotenv").config();
 mongoose.set("strictQuery", true);
 //console.log(process.env.DB_STRING);
 //const mongoURI ="mongodb+srv://admin:admin@cluster0.irfq5v3.mongodb.net/?retryWrites=true&w=majority"
@@ -10,6 +10,3 @@ mongoose.connection
   .on("error", (error) => {
     console.log(`Error : ${error}`);
   });
-
-
-  

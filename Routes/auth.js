@@ -39,6 +39,7 @@ router.get("/login", async (req, res) => {
 router.post("/signup", async (req, res) => {
   const { name, email } = req.body;
   const password = req.body.password.toLowerCase();
+  const DOB = req.body.Date;
   const passwordhashed = await Encode(password);
 
   try {
@@ -47,6 +48,7 @@ router.post("/signup", async (req, res) => {
       email: email,
       password: passwordhashed,
       uuid: uuidv4(),
+      DOB: DOB,
     });
     const response = await userData.save();
 

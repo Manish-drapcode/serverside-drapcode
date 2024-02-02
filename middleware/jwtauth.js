@@ -4,11 +4,9 @@ require("dotenv").config();
 const Authenticate = (req, res) => {
   let jwtsecretkey = process.env.JWT_SECRET_KEY;
 
-  
   try {
-   
     const token = req.headers;
-    console.log("ghghghg", "Bearer "+token[jwtsecretkey]);
+    console.log("ghghghg", "Bearer " + token[jwtsecretkey]);
     const verified = jwt.verify(token[jwtsecretkey], jwtsecretkey);
     if (verified) {
       return res.send({ message: "successfully verified " });
